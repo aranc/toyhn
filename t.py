@@ -114,5 +114,8 @@ def train2(data_generator):
         print("Epoch:", epoch, "Loss:", loss.item())
         epoch += 1
 
+        if loss.item() < 0.01:
+            return
+
 train2(gen_data_batch_single)
 
