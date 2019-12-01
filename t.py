@@ -2,12 +2,12 @@ import torch
 import random
 
 def gen_data_entry(op):
-    x = [random.randint(-100, 100) for _ in range(2)]
-    x = torch.FloatTensor(x)
+    _x = [random.randint(-100, 100) for _ in range(2)]
+    x = torch.FloatTensor(_x)
     if op == 1:
-        y = torch.FloatTensor(x[0])
+        y = torch.FloatTensor([_x[0]])
     if op == 2:
-        y = torch.FloatTensor(x[1])
+        y = torch.FloatTensor([_x[1]])
 
     return torch.FloatTensor(op), x, y
 
