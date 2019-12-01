@@ -1,7 +1,7 @@
 import torch
 import random
 
-OVERFIT = False
+OVERFIT = True
 
 def gen_data_entry(op):
     if OVERFIT:
@@ -86,6 +86,7 @@ def train(data_generator, gen_weights_in_batch):
         epoch += 1
 
 def train2(data_generator):
+    best = 1e10
     epoch = 1
     while True:
         batch = data_generator()
@@ -116,8 +117,10 @@ def train2(data_generator):
         print("Epoch:", epoch, "Loss:", loss.item())
         epoch += 1
 
-        #if loss.item() < 0.01:
-        #    return
+        if loss.item() < best:
+            best = loss.item()
+        if loss.item() > best * 100:
+            return
 
 train2(gen_data_batch_single)
 
