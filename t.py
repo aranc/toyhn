@@ -9,7 +9,7 @@ def gen_data_entry(op):
     if op == 2:
         y = torch.FloatTensor([_x[1]])
 
-    return torch.FloatTensor(op), x, y
+    return torch.FloatTensor([op]), x, y
 
 
 class F(torch.nn.Module):
