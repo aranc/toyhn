@@ -12,7 +12,7 @@ def gen_data_entry(op):
     return torch.FloatTensor(op), x, y
 
 
-class F(nn.Module):
+class F(torch.nn.Module):
     def __init__(self, args, num_actions):
         super(F, self).__init__()
         self.get_weight = torch.nn.Linear(1, 2)
@@ -21,7 +21,7 @@ class F(nn.Module):
     def forward(self, x):
         return self.weight(x), self.bias(x)
 
-class G(nn.Module):
+class G(torch.nn.Module):
     def __init__(self, args, num_actions):
         super(G, self).__init__()
         self.net = torch.nn.Linear(2, 1)
