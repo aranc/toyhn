@@ -95,6 +95,16 @@ def train2(data_generator):
         preds = torch.cat(preds)
         loss = ((preds - ys.squeeze(1)) ** 2).mean()
         loss.backward()
+
+        grad_list = []
+        for p in filter(lambda p: p.requires_grad, g.parameters()):
+            grad_list.append(p.grad.view(-1))
+        grad_list = torch.cat(grad_list, 0)
+        all_grads = []
+        all_grads.append(grad_list.detach())
+        all_grads = torch.stack(all_grads, 0)
+        new_weights.backward(all_grads)
+
         optimizer.step()
         print("Epoch:", epoch, "Loss:", loss.item())
         epoch += 1
