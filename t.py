@@ -1,7 +1,15 @@
 import torch
 import random
 
-OVERFIT = True
+import sys
+
+assert sys.argv[1] in ('True', 'False')
+if sys.argv[1] == 'True':
+    OVERFIT = True
+elif sys.argv[1] == 'False':
+    OVERFIT = False
+else:
+    assert False
 
 def gen_data_entry(op):
     if OVERFIT:
@@ -114,13 +122,11 @@ def train2(data_generator):
         new_weights[1].backward(all_grads)
 
         optimizer.step()
-        print("Epoch:", epoch, "Loss:", loss.item())
+        print("Epoch:", epoch, "Best:", best, "Loss:", loss.item())
         epoch += 1
 
         if loss.item() < best:
             best = loss.item()
-        if loss.item() > best * 100:
-            return
 
 train2(gen_data_batch_single)
 
