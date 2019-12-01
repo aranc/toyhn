@@ -3,13 +3,17 @@ import random
 
 import sys
 
-assert sys.argv[1] in ('True', 'False')
-if sys.argv[1] == 'True':
-    OVERFIT = True
-elif sys.argv[1] == 'False':
+try:
+    __IPYTHON__
     OVERFIT = False
-else:
-    assert False
+except:
+    assert sys.argv[1] in ('True', 'False')
+    if sys.argv[1] == 'True':
+        OVERFIT = True
+    elif sys.argv[1] == 'False':
+        OVERFIT = False
+    else:
+        assert False
 
 def gen_data_entry(op):
     if OVERFIT:
