@@ -44,7 +44,7 @@ def gen_data_batch_mixed():
 def gen_data_batch_hard():
     return collate([gen_data_entry(1), gen_data_entry(2)])
 
-def go(data_generator):
+def train(data_generator):
     epoch = 1
     while True:
         batch = data_generator()
@@ -62,5 +62,5 @@ def go(data_generator):
         print("Epoch:", epoch, "Loss:", loss.item())
         epoch += 1
 
-go(gen_data_batch_mixed)
+train(gen_data_batch_mixed)
 
