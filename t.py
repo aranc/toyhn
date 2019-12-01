@@ -13,7 +13,7 @@ def gen_data_entry(op):
 
 
 class F(torch.nn.Module):
-    def __init__(self, args, num_actions):
+    def __init__(self):
         super(F, self).__init__()
         self.get_weight = torch.nn.Linear(1, 2)
         self.get_bias = torch.nn.Linear(1, 1)
@@ -22,7 +22,7 @@ class F(torch.nn.Module):
         return self.weight(x), self.bias(x)
 
 class G(torch.nn.Module):
-    def __init__(self, args, num_actions):
+    def __init__(self):
         super(G, self).__init__()
         self.net = torch.nn.Linear(2, 1)
 
