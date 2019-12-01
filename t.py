@@ -93,6 +93,7 @@ def train(data_generator, gen_weights_in_batch):
         print("Epoch:", epoch, "Loss:", loss.item())
         epoch += 1
 
+best_f = None
 def train2(data_generator):
     best = 1e10
     epoch = 1
@@ -127,6 +128,7 @@ def train2(data_generator):
 
         if loss.item() < best:
             best = loss.item()
+            best_f = f.state_dict()
 
 train2(gen_data_batch_single)
 
