@@ -1,7 +1,7 @@
 import torch
 import random
 
-OVERFIT=True
+OVERFIT = True
 
 def gen_data_entry(op):
     if OVERFIT:
