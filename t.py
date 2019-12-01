@@ -1,7 +1,7 @@
 import torch
 import random
 
-OVERFIT = True
+OVERFIT = False
 
 def gen_data_entry(op):
     if OVERFIT:
@@ -41,7 +41,7 @@ class G(torch.nn.Module):
 
 f = F()
 g = G()
-optimizer = torch.optim.Adam(f.parameters(), lr=1e-4)
+optimizer = torch.optim.Adam(f.parameters(), lr=1e-6)
 
 def collate(batch):
     ops = torch.stack([_[0] for _ in batch])
