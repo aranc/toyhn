@@ -15,16 +15,24 @@ def gen_data_entry(op):
 class F(nn.Module):
     def __init__(self, args, num_actions):
         super(F, self).__init__()
+        self.get_weight = torch.nn.Linear(1, 2)
+        self.get_bias = torch.nn.Linear(1, 1)
 
     def forward(self, x):
-        pass
+        return self.weight(x), self.bias(x)
 
 class G(nn.Module):
     def __init__(self, args, num_actions):
         super(G, self).__init__()
+        self.net = torch.nn.Linear(2, 1)
+
+    def load_weights(self, new_weights):
+        weight, bias = new_weights
+        d = {'weight':weight, 'bias':bias}
+        self.net.load_state_dict(d)
 
     def forward(self, x):
-        pass
+        return self.net(x)
 
 f = F()
 g = G()
