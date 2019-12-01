@@ -54,15 +54,20 @@ def gen_data_batch_mixed():
 def gen_data_batch_hard():
     return collate([gen_data_entry(1), gen_data_entry(2)])
 
-def train(data_generator):
+def train(data_generator, gen_weights_in_batch):
     epoch = 1
     while True:
         batch = data_generator()
         ops, xs, ys = batch
         preds = []
+        if gen_weights_in_batch:
+            new_weights = f(ops)
         for i in range(len(ops)):
-            new_weights = f(ops[i])
-            g.load_weights(new_weights)
+            if not gen_weights_in_batch:
+                _new_weights = f(ops[i])
+            else:
+                _new_weights = new_weights[i]
+            g.load_weights(_new_weights)
             pred = g(xs[i])
             preds.append(pred)
         preds = torch.cat(preds)
@@ -72,5 +77,5 @@ def train(data_generator):
         print("Epoch:", epoch, "Loss:", loss.item())
         epoch += 1
 
-train(gen_data_batch_mixed)
+train(gen_data_batch_mixed, gen_weights_in_batch=False)
 
