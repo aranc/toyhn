@@ -15,11 +15,11 @@ def gen_data_entry(op):
 class F(torch.nn.Module):
     def __init__(self):
         super(F, self).__init__()
-        self.get_weight = torch.nn.Linear(1, 2)
-        self.get_bias = torch.nn.Linear(1, 1)
+        self.gen_weight = torch.nn.Linear(1, 2)
+        self.gen_bias = torch.nn.Linear(1, 1)
 
     def forward(self, x):
-        return self.weight(x), self.bias(x)
+        return self.gen_weight(x), self.gen_bias(x)
 
 class G(torch.nn.Module):
     def __init__(self):
@@ -28,6 +28,7 @@ class G(torch.nn.Module):
 
     def load_weights(self, new_weights):
         weight, bias = new_weights
+        weight = weight.unsqueeze(0)
         d = {'weight':weight, 'bias':bias}
         self.net.load_state_dict(d)
 
@@ -61,7 +62,9 @@ def train(data_generator):
         for i in range(len(ops)):
             new_weights = f(ops[i])
             g.load_weights(new_weights)
-            pred = g(x)
+            pred = g(xs[i])
+            print(pred)
+            exit()
             preds.append(pred)
         preds = torch.cat(preds)
         loss = ((preds - ys) ** 2).mean()
