@@ -66,7 +66,7 @@ def train(data_generator, gen_weights_in_batch):
             if not gen_weights_in_batch:
                 _new_weights = f(ops[i])
             else:
-                _new_weights = new_weights[i]
+                _new_weights = new_weights[0][i], new_weights[1][i]
             g.load_weights(_new_weights)
             pred = g(xs[i])
             preds.append(pred)
