@@ -103,7 +103,8 @@ def train2(data_generator):
         all_grads = []
         all_grads.append(grad_list.detach())
         all_grads = torch.stack(all_grads, 0)
-        new_weights.backward(all_grads)
+        new_weights[0].backward(all_grads)
+        new_weights[1].backward(all_grads)
 
         optimizer.step()
         print("Epoch:", epoch, "Loss:", loss.item())
