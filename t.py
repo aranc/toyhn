@@ -99,6 +99,7 @@ def train(data_generator, gen_weights_in_batch):
 
 best_f = None
 def train2(data_generator):
+    global best_f
     best = 1e10
     epoch = 1
     while True:
