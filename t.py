@@ -2,6 +2,7 @@ import torch
 import random
 
 def gen_data_entry(op):
+    return torch.FloatTensor([1]), torch.FloatTensor([1,1]), torch.FloatTensor([1])
     _x = [random.randint(-100, 100) for _ in range(2)]
     x = torch.FloatTensor(_x)
     if op == 1:
