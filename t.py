@@ -80,5 +80,24 @@ def train(data_generator, gen_weights_in_batch):
         print("Epoch:", epoch, "Loss:", loss.item())
         epoch += 1
 
-train(gen_data_batch_mixed, gen_weights_in_batch=False)
+def train2(data_generator):
+    epoch = 1
+    while True:
+        batch = data_generator()
+        ops, xs, ys = batch
+        preds = []
+        new_weights = f(ops)
+        for i in range(len(ops)):
+            _new_weights = new_weights[0][i], new_weights[1][i]
+            g.load_weights(_new_weights)
+            pred = g(xs[i])
+            preds.append(pred)
+        preds = torch.cat(preds)
+        loss = ((preds - ys.squeeze(1)) ** 2).mean()
+        loss.backward()
+        optimizer.step()
+        print("Epoch:", epoch, "Loss:", loss.item())
+        epoch += 1
+
+train2(gen_data_batch_mixed)
 
