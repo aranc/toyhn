@@ -49,6 +49,10 @@ def collate(batch):
     ys = torch.stack([_[2] for _ in batch])
     return ops, xs, ys
 
+def gen_data_batch_single():
+    op1 = random.choice((1, 2))
+    return collate([gen_data_entry(op1)])
+
 def gen_data_batch_mixed():
     op1 = random.choice((1, 2))
     op2 = random.choice((1, 2))
@@ -99,16 +103,16 @@ def train2(data_generator):
         grad_list = []
         for p in filter(lambda p: p.requires_grad, g.parameters()):
             grad_list.append(p.grad.view(-1))
+            break
         grad_list = torch.cat(grad_list, 0)
         all_grads = []
         all_grads.append(grad_list.detach())
         all_grads = torch.stack(all_grads, 0)
         new_weights[0].backward(all_grads)
-        new_weights[1].backward(all_grads)
 
         optimizer.step()
         print("Epoch:", epoch, "Loss:", loss.item())
         epoch += 1
 
-train2(gen_data_batch_mixed)
+train2(gen_data_batch_single)
 
