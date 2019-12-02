@@ -3,17 +3,7 @@ import random
 
 import sys
 
-try:
-    __IPYTHON__
-    OVERFIT = False
-except:
-    assert sys.argv[1] in ('True', 'False')
-    if sys.argv[1] == 'True':
-        OVERFIT = True
-    elif sys.argv[1] == 'False':
-        OVERFIT = False
-    else:
-        assert False
+OVERFIT = False
 
 def gen_data_entry(op):
     if OVERFIT:
@@ -28,31 +18,6 @@ def gen_data_entry(op):
 
     return torch.FloatTensor([op]), x, y
 
-
-class F(torch.nn.Module):
-    def __init__(self):
-        super(F, self).__init__()
-        self.gen_weight = torch.nn.Linear(1, 2)
-        self.gen_bias = torch.nn.Linear(1, 1)
-
-    def forward(self, x):
-        return self.gen_weight(x), self.gen_bias(x)
-
-class F2(torch.nn.Module):
-    def __init__(self):
-        super(F, self).__init__()
-        self.L1 = torch.nn.Linear(1, 2)
-        self.L2 = torch.nn.Linear(2, 2)
-        self.gen_weight = torch.nn.Linear(2, 2)
-        self.gen_bias = torch.nn.Linear(2, 1)
-
-    def forward(self, x):
-        x = self.L1(x)
-        x = torch.nn.functional.relu(x)
-        x = self.L2(x)
-        x = torch.nn.functional.relu(x)
-        return self.gen_weight(x), self.gen_bias(x)
-
 class G(torch.nn.Module):
     def __init__(self):
         super(G, self).__init__()
@@ -63,9 +28,46 @@ class G(torch.nn.Module):
         weight = weight.unsqueeze(0)
         d = {'weight':weight, 'bias':bias}
         self.net.load_state_dict(d)
+        start = 0
+        for p in self.g.parameters():
+            p.data = new_weights[start:start + p.numel()].view(p.data.shape).contiguous()
+            start = start + p.numel()
+        self.g.previous_layers_lstm.flatten_parameters()
+        assert start == len(new_weights)
+
+        start = 0
+        for p in self.parameters():
+            p.data = new_weights[start:start + p.numel()].view(p.data.shape).contiguous()
+            start = start + p.numel()
+        self.g.previous_layers_lstm.flatten_parameters()
+        assert start == len(new_weights)
+
+    def num_parameters(self):
+        res = 0
+        for p in self.parameters():
+            res += p.numel()
+        return res
 
     def forward(self, x):
         return self.net(x)
+
+class F(torch.nn.Module):
+    def __init__(self):
+        super(F, self).__init__()
+
+        N = G().num_parameters()
+
+        self.L1 = torch.nn.Linear(1, N)
+        self.L2 = torch.nn.Linear(N, N)
+        self.gen_weights = torch.nn.Linear(N, N)
+
+    def forward(self, x):
+        x = self.L1(x)
+        x = torch.nn.functional.relu(x)
+        x = self.L2(x)
+        x = torch.nn.functional.relu(x)
+        return self.gen_weights(x)
+
 
 f = F()
 g = G()
@@ -92,31 +94,9 @@ def gen_data_batch_hard():
 def gen_data_batch_validation():
     return collate([gen_data_entry(random.choice((1, 2))) for _ in range(100)])
 
-def train(data_generator, gen_weights_in_batch):
-    epoch = 1
-    while True:
-        batch = data_generator()
-        ops, xs, ys = batch
-        preds = []
-        if gen_weights_in_batch:
-            new_weights = f(ops)
-        for i in range(len(ops)):
-            if not gen_weights_in_batch:
-                _new_weights = f(ops[i])
-            else:
-                _new_weights = new_weights[0][i], new_weights[1][i]
-            g.load_weights(_new_weights)
-            pred = g(xs[i])
-            preds.append(pred)
-        preds = torch.cat(preds)
-        loss = ((preds - ys.squeeze(1)) ** 2).mean()
-        loss.backward()
-        optimizer.step()
-        print("Epoch:", epoch, "Loss:", loss.item())
-        epoch += 1
 
 best_f = None
-def train2(data_generator):
+def train(data_generator):
     global best_f
 
     val_set = gen_data_batch_validation()
@@ -177,5 +157,5 @@ def train2(data_generator):
                 torch.save(best_f, "best_f.pkl")
                 save_me = False
 
-train2(gen_data_batch_single)
+train(gen_data_batch_single)
 
