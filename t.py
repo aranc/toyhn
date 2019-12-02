@@ -113,13 +113,10 @@ def train(data_generator):
             #or p in filter(lambda p: p.requires_grad, g.parameters()):
             for p in g.parameters():
                 grad_list.append(p.grad.view(-1))
-                break
             grad_list = torch.cat(grad_list, 0)
             all_grads = []
             all_grads.append(grad_list.detach())
             all_grads = torch.stack(all_grads, 0)
-            print(new_weights.shape, all_grads.shape)
-            exit()
             new_weights.backward(all_grads)
 
         optimizer.step()
