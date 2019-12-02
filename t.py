@@ -21,9 +21,7 @@ def gen_data_entry(op):
 class G(torch.nn.Module):
     def __init__(self):
         super(G, self).__init__()
-        self.net = torch.nn.Linear(2, 2, bias=True)
-        self.net2 = torch.nn.Linear(2, 2, bias=True)
-        self.net3 = torch.nn.Linear(2, 1, bias=True)
+        self.net = torch.nn.Linear(2, 1, bias=False)
 
     def load_weights(self, new_weights):
         start = 0
@@ -40,11 +38,7 @@ class G(torch.nn.Module):
         return res
 
     def forward(self, x):
-        x = self.net(x)
-        x = torch.nn.functional.relu(x)
-        x = self.net2(x)
-        x = torch.nn.functional.relu(x)
-        return self.net3(x)
+        return self.net(x)
 
 class F(torch.nn.Module):
     def __init__(self):
