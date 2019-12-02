@@ -28,7 +28,7 @@ class G(torch.nn.Module):
         for p in self.parameters():
             p.data = new_weights[start:start + p.numel()].view(p.data.shape).contiguous()
             start = start + p.numel()
-        self.g.previous_layers_lstm.flatten_parameters()
+        #self.g.previous_layers_lstm.flatten_parameters()
         assert start == len(new_weights)
 
     def num_parameters(self):
