@@ -55,12 +55,13 @@ class F(torch.nn.Module):
         x = torch.nn.functional.relu(x)
         x = self.L2(x)
         x = self.gen_weights(x)
+        x = torch.nn.functional.sigmoid(x)
         return x
 
 
 f = F()
 g = G()
-optimizer = torch.optim.Adam(f.parameters(), lr=1e-5)
+optimizer = torch.optim.Adam(f.parameters(), lr=1e-3)
 
 def collate(batch):
     ops = torch.stack([_[0] for _ in batch])
