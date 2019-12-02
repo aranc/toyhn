@@ -16,7 +16,7 @@ def gen_data_entry(op):
     if op == 1:
         y = torch.FloatTensor(_x2)
     if op == 0:
-        y = torch.FloatTensor(_x2)
+        y = torch.FloatTensor(_x)
 
     return torch.FloatTensor([op]), x, y
 
