@@ -75,7 +75,7 @@ def gen_data_batch_hard():
     return collate([gen_data_entry(1), gen_data_entry(2)])
 
 def gen_data_batch_validation():
-    return collate([gen_data_entry(random.choice((1, 2))) for _ in range(1000)])
+    return collate([gen_data_entry(random.choice((1, 2))) for _ in range(100)])
 
 def train(data_generator, gen_weights_in_batch):
     epoch = 1
@@ -138,15 +138,16 @@ def train2(data_generator):
 
         optimizer.step()
 
-        preds = []
-        new_weights = f(val_ops)
-        for i in range(len(val_ops)):
-            _new_weights = new_weights[0][i], new_weights[1][i]
-            g.load_weights(_new_weights)
-            pred = g(val_xs[i])
-            preds.append(pred)
-        preds = torch.cat(preds)
-        loss = ((preds - val_ys.squeeze(1)) ** 2).mean()
+        with torch.no_grad():
+            preds = []
+            new_weights = f(val_ops)
+            for i in range(len(val_ops)):
+                _new_weights = new_weights[0][i], new_weights[1][i]
+                g.load_weights(_new_weights)
+                pred = g(val_xs[i])
+                preds.append(pred)
+            preds = torch.cat(preds)
+            loss = ((preds - val_ys.squeeze(1)) ** 2).mean()
 
         print("Epoch:", epoch, "Best:", best, "Loss:", loss.item())
         epoch += 1
