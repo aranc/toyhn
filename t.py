@@ -9,19 +9,19 @@ def gen_data_entry(op):
     if OVERFIT:
         return torch.FloatTensor([1]), torch.FloatTensor([1,1]), torch.FloatTensor([1])
     #_x = [random.randint(-100, 100) for _ in range(2)]
-    _x = [random.random()*2 - 1 for _ in range(2)]
+    _x = [random.random()*2 - 1 for _ in range(1)]
     x = torch.FloatTensor(_x)
     if op == 1:
-        y = torch.FloatTensor([_x[0]])
+        y = torch.FloatTensor(_x)
     if op == 0:
-        y = torch.FloatTensor([_x[1]])
+        y = torch.FloatTensor(_x)
 
     return torch.FloatTensor([op]), x, y
 
 class G(torch.nn.Module):
     def __init__(self):
         super(G, self).__init__()
-        self.net = torch.nn.Linear(2, 1, bias=False)
+        self.net = torch.nn.Linear(1, 1, bias=False)
 
     def load_weights(self, new_weights):
         start = 0
@@ -54,12 +54,14 @@ class F(torch.nn.Module):
         x = self.L1(x)
         x = torch.nn.functional.relu(x)
         x = self.L2(x)
-        return self.gen_weights(x)
+        x = self.gen_weights(x)
+        x = torch.nn.functional.sigmoid(x)
+        return x
 
 
 f = F()
 g = G()
-optimizer = torch.optim.Adam(f.parameters(), lr=1e-4)
+optimizer = torch.optim.Adam(f.parameters(), lr=1e-5)
 
 def collate(batch):
     ops = torch.stack([_[0] for _ in batch])
