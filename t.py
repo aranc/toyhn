@@ -13,7 +13,7 @@ def gen_data_entry(op):
     x = torch.FloatTensor(_x)
     if op == 1:
         y = torch.FloatTensor([_x[0]])
-    if op == 2:
+    if op == 0:
         y = torch.FloatTensor([_x[1]])
 
     return torch.FloatTensor([op]), x, y
@@ -23,7 +23,7 @@ class G(torch.nn.Module):
         super(G, self).__init__()
         self.net = torch.nn.Linear(2, 2, bias=True)
         self.net2 = torch.nn.Linear(2, 2, bias=True)
-        self.net3 = torch.nn.Linear(2, 1, bias=False)
+        self.net3 = torch.nn.Linear(2, 1, bias=True)
 
     def load_weights(self, new_weights):
         start = 0
@@ -74,19 +74,19 @@ def collate(batch):
     return ops, xs, ys
 
 def gen_data_batch_single():
-    op1 = random.choice((1, 2))
+    op1 = random.choice((1, 0))
     return collate([gen_data_entry(op1)])
 
 def gen_data_batch_mixed():
-    op1 = random.choice((1, 2))
-    op2 = random.choice((1, 2))
+    op1 = random.choice((1, 0))
+    op2 = random.choice((1, 0))
     return collate([gen_data_entry(op1), gen_data_entry(op2)])
 
 def gen_data_batch_hard():
-    return collate([gen_data_entry(1), gen_data_entry(2)])
+    return collate([gen_data_entry(1), gen_data_entry(0)])
 
 def gen_data_batch_validation():
-    return collate([gen_data_entry(random.choice((1, 2))) for _ in range(100)])
+    return collate([gen_data_entry(random.choice((1, 0))) for _ in range(100)])
 
 
 best_f = None
