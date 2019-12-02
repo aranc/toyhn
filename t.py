@@ -62,12 +62,7 @@ class G(torch.nn.Module):
         weight, bias = new_weights
         weight = weight.unsqueeze(0)
         d = {'weight':weight, 'bias':bias}
-
-        print("===================================")
-        print("new weights:", weight, bias)
         self.net.load_state_dict(d)
-        print("net parmas:", list(self.net.named_parameters()))
-        print("===================================")
 
     def forward(self, x):
         return self.net(x)
@@ -154,8 +149,8 @@ def train2(data_generator):
             all_grads = []
             all_grads.append(grad_list.detach())
             all_grads = torch.stack(all_grads, 0)
-            new_weights[0].backward(all_grads)
-            new_weights[1].backward(all_grads)
+            (new_weights[0]).backward(all_grads)
+            (new_weights[1]).backward(all_grads)
 
         optimizer.step()
 
