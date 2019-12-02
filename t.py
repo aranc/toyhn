@@ -156,7 +156,7 @@ def train2(data_generator):
             best_f = f.state_dict()
             save_me = True
         if save_me:
-            if epoch % 10000 == 0:
+            if epoch % 1000 == 0:
                 torch.save(best_f, "best_f.pkl")
                 save_me = False
 
