@@ -9,8 +9,8 @@ def gen_data_entry(op):
     if OVERFIT:
         return torch.FloatTensor([1]), torch.FloatTensor([1]), torch.FloatTensor([2])
     #_x = [random.randin(t(-100, 100) for _ in range(2)]
-    #_x = [random.random()*2 - 1 for _ in range(1)]
-    _x = [random.choice((0, 1)) for _ in range(1)]
+    _x = [random.random()*2 - 1 for _ in range(1)]
+    #_x = [random.choice((0, 1)) for _ in range(1)]
     x = torch.FloatTensor(_x)
     _x2 = [_ * 2 for _ in _x]
     if op == 1:
@@ -30,6 +30,7 @@ class G(torch.nn.Module):
         for p in self.parameters():
             p.data = new_weights[start:start + p.numel()].view(p.data.shape).contiguous()
             start = start + p.numel()
+            p.grad = None
         #self.g.previous_layers_lstm.flatten_parameters()
         assert start == len(new_weights)
 
@@ -99,6 +100,8 @@ def train(data_generator):
     save_me = False
     epoch = 1
     while True:
+        optimizer.zero_grad()
+
         batch = data_generator()
         ops, xs, ys = batch
 
