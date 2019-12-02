@@ -32,10 +32,16 @@ def gen_data_entry(op):
 class F(torch.nn.Module):
     def __init__(self):
         super(F, self).__init__()
-        self.gen_weight = torch.nn.Linear(1, 2)
-        self.gen_bias = torch.nn.Linear(1, 1)
+        self.L1 = torch.nn.Linear(1, 2)
+        self.L2 = torch.nn.Linear(2, 2)
+        self.gen_weight = torch.nn.Linear(2, 2)
+        self.gen_bias = torch.nn.Linear(2, 1)
 
     def forward(self, x):
+        x = self.L1(x)
+        x = torch.nn.functional.relu(x)
+        x = self.L2(x)
+        x = torch.nn.functional.relu(x)
         return self.gen_weight(x), self.gen_bias(x)
 
 class G(torch.nn.Module):
@@ -47,14 +53,19 @@ class G(torch.nn.Module):
         weight, bias = new_weights
         weight = weight.unsqueeze(0)
         d = {'weight':weight, 'bias':bias}
+
+        print("===================================")
+        print("new weights:", weight, bias)
         self.net.load_state_dict(d)
+        print("net parmas:", list(self.net.named_parameters()))
+        print("===================================")
 
     def forward(self, x):
         return self.net(x)
 
 f = F()
 g = G()
-optimizer = torch.optim.Adam(f.parameters(), lr=1e-6)
+optimizer = torch.optim.Adam(f.parameters(), lr=1e-3)
 
 def collate(batch):
     ops = torch.stack([_[0] for _ in batch])
@@ -125,16 +136,17 @@ def train2(data_generator):
         loss = ((preds - ys.squeeze(1)) ** 2).mean()
         loss.backward()
 
-        grad_list = []
-        for p in filter(lambda p: p.requires_grad, g.parameters()):
-            grad_list.append(p.grad.view(-1))
-            break
-        grad_list = torch.cat(grad_list, 0)
-        all_grads = []
-        all_grads.append(grad_list.detach())
-        all_grads = torch.stack(all_grads, 0)
-        new_weights[0].backward(all_grads)
-        new_weights[1].backward(all_grads)
+        if False:
+            grad_list = []
+            for p in filter(lambda p: p.requires_grad, g.parameters()):
+                grad_list.append(p.grad.view(-1))
+                break
+            grad_list = torch.cat(grad_list, 0)
+            all_grads = []
+            all_grads.append(grad_list.detach())
+            all_grads = torch.stack(all_grads, 0)
+            new_weights[0].backward(all_grads)
+            new_weights[1].backward(all_grads)
 
         optimizer.step()
 
