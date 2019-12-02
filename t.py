@@ -7,9 +7,10 @@ OVERFIT = False
 
 def gen_data_entry(op):
     if OVERFIT:
-        return torch.FloatTensor([1]), torch.FloatTensor([1,1]), torch.FloatTensor([1])
-    #_x = [random.randint(-100, 100) for _ in range(2)]
-    _x = [random.random()*2 - 1 for _ in range(1)]
+        return torch.FloatTensor([1]), torch.FloatTensor([1]), torch.FloatTensor([2])
+    #_x = [random.randin(t(-100, 100) for _ in range(2)]
+    #_x = [random.random()*2 - 1 for _ in range(1)]
+    _x = [random.choice((0, 1)) for _ in range(1)]
     x = torch.FloatTensor(_x)
     _x2 = [_ * 2 for _ in _x]
     if op == 1:
@@ -56,6 +57,7 @@ class F(torch.nn.Module):
         x = self.L1(x)
         x = torch.nn.functional.relu(x)
         x = self.L2(x)
+        x = torch.nn.functional.relu(x)
         x = self.gen_weights(x)
         return x
 
