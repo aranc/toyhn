@@ -12,7 +12,8 @@ def gen_data_entry(op):
     _x = [random.random()*2 - 1 for _ in range(1)]
     x = torch.FloatTensor(_x)
     if op == 1:
-        y = torch.FloatTensor(_x)
+        _x2 = [_ * 2 for _ in _x]
+        y = torch.FloatTensor(_x2)
     if op == 0:
         y = torch.FloatTensor(_x)
 
@@ -61,7 +62,7 @@ class F(torch.nn.Module):
 
 f = F()
 g = G()
-optimizer = torch.optim.Adam(f.parameters(), lr=1e-3)
+optimizer = torch.optim.Adam(f.parameters(), lr=1e-4)
 
 def collate(batch):
     ops = torch.stack([_[0] for _ in batch])
