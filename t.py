@@ -113,8 +113,8 @@ def train2(data_generator):
     while True:
         batch = data_generator()
         ops, xs, ys = batch
-        preds = []
 
+        preds = []
         new_weights = f(ops)
         for i in range(len(ops)):
             _new_weights = new_weights[0][i], new_weights[1][i]
@@ -138,6 +138,7 @@ def train2(data_generator):
 
         optimizer.step()
 
+        preds = []
         new_weights = f(val_ops)
         for i in range(len(val_ops)):
             _new_weights = new_weights[0][i], new_weights[1][i]
