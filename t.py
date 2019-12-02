@@ -54,7 +54,6 @@ class F(torch.nn.Module):
         x = self.L1(x)
         x = torch.nn.functional.relu(x)
         x = self.L2(x)
-        x = torch.nn.functional.relu(x)
         return self.gen_weights(x)
 
 
