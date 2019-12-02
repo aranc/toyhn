@@ -11,11 +11,11 @@ def gen_data_entry(op):
     #_x = [random.randint(-100, 100) for _ in range(2)]
     _x = [random.random()*2 - 1 for _ in range(1)]
     x = torch.FloatTensor(_x)
+    _x2 = [_ * 2 for _ in _x]
     if op == 1:
-        _x2 = [_ * 2 for _ in _x]
         y = torch.FloatTensor(_x2)
     if op == 0:
-        y = torch.FloatTensor(_x)
+        y = torch.FloatTensor(_x2)
 
     return torch.FloatTensor([op]), x, y
 
@@ -45,11 +45,12 @@ class F(torch.nn.Module):
     def __init__(self):
         super(F, self).__init__()
 
-        N = G().num_parameters()
+        Ne = G().num_parameters()
+        N = 10
 
         self.L1 = torch.nn.Linear(1, N)
         self.L2 = torch.nn.Linear(N, N)
-        self.gen_weights = torch.nn.Linear(N, N)
+        self.gen_weights = torch.nn.Linear(N, Ne)
 
     def forward(self, x):
         x = self.L1(x)
