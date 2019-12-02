@@ -24,17 +24,6 @@ class G(torch.nn.Module):
         self.net = torch.nn.Linear(2, 1)
 
     def load_weights(self, new_weights):
-        weight, bias = new_weights
-        weight = weight.unsqueeze(0)
-        d = {'weight':weight, 'bias':bias}
-        self.net.load_state_dict(d)
-        start = 0
-        for p in self.g.parameters():
-            p.data = new_weights[start:start + p.numel()].view(p.data.shape).contiguous()
-            start = start + p.numel()
-        self.g.previous_layers_lstm.flatten_parameters()
-        assert start == len(new_weights)
-
         start = 0
         for p in self.parameters():
             p.data = new_weights[start:start + p.numel()].view(p.data.shape).contiguous()
@@ -112,8 +101,7 @@ def train(data_generator):
         preds = []
         new_weights = f(ops)
         for i in range(len(ops)):
-            _new_weights = new_weights[0][i], new_weights[1][i]
-            g.load_weights(_new_weights)
+            g.load_weights(new_weights[i])
             pred = g(xs[i])
             preds.append(pred)
         preds = torch.cat(preds)
@@ -129,8 +117,7 @@ def train(data_generator):
             all_grads = []
             all_grads.append(grad_list.detach())
             all_grads = torch.stack(all_grads, 0)
-            (new_weights[0]).backward(all_grads)
-            (new_weights[1]).backward(all_grads)
+            new_weights.backward(all_grads)
 
         optimizer.step()
 
@@ -138,8 +125,7 @@ def train(data_generator):
             preds = []
             new_weights = f(val_ops)
             for i in range(len(val_ops)):
-                _new_weights = new_weights[0][i], new_weights[1][i]
-                g.load_weights(_new_weights)
+                g.load_weights(new_weights[i])
                 pred = g(val_xs[i])
                 preds.append(pred)
             preds = torch.cat(preds)
