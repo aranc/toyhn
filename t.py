@@ -101,6 +101,7 @@ best_f = None
 def train2(data_generator):
     global best_f
     best = 1e10
+    save_me = False
     epoch = 1
     while True:
         batch = data_generator()
@@ -134,6 +135,11 @@ def train2(data_generator):
         if loss.item() < best:
             best = loss.item()
             best_f = f.state_dict()
+            save_me = True
+        if save_me:
+            if epoch % 10000 == 0:
+                torch.save(best_f, "best_f.pkl")
+                save_me = False
 
 train2(gen_data_batch_single)
 
