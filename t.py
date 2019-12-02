@@ -75,7 +75,7 @@ def gen_data_batch_hard():
     return collate([gen_data_entry(1), gen_data_entry(2)])
 
 def gen_data_batch_validation():
-    return collate([gen_data_entry(random.choice((1, 2)))] for _ in range(1000))
+    return collate([gen_data_entry(random.choice((1, 2))) for _ in range(1000)])
 
 def train(data_generator, gen_weights_in_batch):
     epoch = 1
