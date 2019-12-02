@@ -74,6 +74,9 @@ def gen_data_batch_mixed():
 def gen_data_batch_hard():
     return collate([gen_data_entry(1), gen_data_entry(2)])
 
+def gen_data_batch_validation():
+    return collate([gen_data_entry(random.choice((1, 2)))] for _ in range(1000))
+
 def train(data_generator, gen_weights_in_batch):
     epoch = 1
     while True:
@@ -100,6 +103,10 @@ def train(data_generator, gen_weights_in_batch):
 best_f = None
 def train2(data_generator):
     global best_f
+
+    val_set = gen_data_batch_validation()
+    val_ops, val_xs, val_ys = val_set
+
     best = 1e10
     save_me = False
     epoch = 1
@@ -107,6 +114,7 @@ def train2(data_generator):
         batch = data_generator()
         ops, xs, ys = batch
         preds = []
+
         new_weights = f(ops)
         for i in range(len(ops)):
             _new_weights = new_weights[0][i], new_weights[1][i]
@@ -129,6 +137,16 @@ def train2(data_generator):
         new_weights[1].backward(all_grads)
 
         optimizer.step()
+
+        new_weights = f(val_ops)
+        for i in range(len(val_ops)):
+            _new_weights = new_weights[0][i], new_weights[1][i]
+            g.load_weights(_new_weights)
+            pred = g(val_xs[i])
+            preds.append(pred)
+        preds = torch.cat(preds)
+        loss = ((preds - val_ys.squeeze(1)) ** 2).mean()
+
         print("Epoch:", epoch, "Best:", best, "Loss:", loss.item())
         epoch += 1
 
