@@ -32,6 +32,15 @@ def gen_data_entry(op):
 class F(torch.nn.Module):
     def __init__(self):
         super(F, self).__init__()
+        self.gen_weight = torch.nn.Linear(1, 2)
+        self.gen_bias = torch.nn.Linear(1, 1)
+
+    def forward(self, x):
+        return self.gen_weight(x), self.gen_bias(x)
+
+class F2(torch.nn.Module):
+    def __init__(self):
+        super(F, self).__init__()
         self.L1 = torch.nn.Linear(1, 2)
         self.L2 = torch.nn.Linear(2, 2)
         self.gen_weight = torch.nn.Linear(2, 2)
@@ -65,7 +74,7 @@ class G(torch.nn.Module):
 
 f = F()
 g = G()
-optimizer = torch.optim.Adam(f.parameters(), lr=1e-3)
+optimizer = torch.optim.Adam(f.parameters(), lr=1e-4)
 
 def collate(batch):
     ops = torch.stack([_[0] for _ in batch])
@@ -136,7 +145,7 @@ def train2(data_generator):
         loss = ((preds - ys.squeeze(1)) ** 2).mean()
         loss.backward()
 
-        if False:
+        if True:
             grad_list = []
             for p in filter(lambda p: p.requires_grad, g.parameters()):
                 grad_list.append(p.grad.view(-1))
