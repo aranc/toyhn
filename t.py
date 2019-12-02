@@ -46,7 +46,7 @@ class F(torch.nn.Module):
         super(F, self).__init__()
 
         Ne = G().num_parameters()
-        N = 100
+        N = 20
 
         self.L1 = torch.nn.Linear(1, N)
         self.L2 = torch.nn.Linear(N, N)
