@@ -3,22 +3,27 @@ import random
 
 import sys
 
+OVERFIT = False
+
 def gen_data_entry(op):
-    _x = [random.randint(-100, 100) for _ in range(2)]
-    #_x = [random.random()*2 - 1 for _ in range(1)]
+    if OVERFIT:
+        return torch.FloatTensor([1]), torch.FloatTensor([1]), torch.FloatTensor([2])
+    #_x = [random.randin(t(-100, 100) for _ in range(2)]
+    _x = [random.random()*2 - 1 for _ in range(1)]
     #_x = [random.choice((0, 1)) for _ in range(1)]
     x = torch.FloatTensor(_x)
+    _x2 = [_ * 2 for _ in _x]
     if op == 1:
-        y = torch.FloatTensor([_x[0]])
+        y = torch.FloatTensor(_x2)
     if op == 0:
-        y = torch.FloatTensor([_x[1]])
+        y = torch.FloatTensor(_x)
 
     return torch.FloatTensor([op]), x, y
 
 class G(torch.nn.Module):
     def __init__(self):
         super(G, self).__init__()
-        self.net = torch.nn.Linear(2, 1, bias=False)
+        self.net = torch.nn.Linear(1, 1, bias=False)
 
     def load_weights(self, new_weights):
         start = 0
