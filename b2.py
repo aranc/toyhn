@@ -106,6 +106,8 @@ class Net(torch.nn.Module):
         return results
 
     def backward_hack(self):
+        #in the future, this can be replaced with proper use of backward hooks
+
         if not torch.is_grad_enabled():
             print("warning: calling backward_hack when torch.is_grad_enabled() == False")
             return
