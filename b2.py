@@ -100,7 +100,17 @@ class Net(torch.nn.Module):
         results = torch.stack(results)
         return results
 
-optimizer = torch.optim.Adam(f.parameters(), lr=1e-4)
+    def backward_hack(self, new_weights):
+        all_grads = []
+        for g in self.gs():
+            grad_list = g.get_grads()
+            all_grads.append(grad_list.detach())
+        all_grads = torch.stack(all_grads, 0)
+        new_weights.backward(all_grads)
+        self.gs = None
+
+net = Net()
+optimizer = torch.optim.Adam(net.parameters(), lr=1e-4)
 
 def collate(batch):
     ops = torch.stack([_[0] for _ in batch])
@@ -151,6 +161,7 @@ def train(data_generator):
             grad_list = g.get_grads()
             all_grads.append(grad_list.detach())
         all_grads = torch.stack(all_grads, 0)
+        net.backward_hack()
         new_weights.backward(all_grads)
 
         optimizer.step()
@@ -177,5 +188,13 @@ def train(data_generator):
                 torch.save(best_f, "best_f.pkl")
                 save_me = False
 
-train(gen_data_batch_hard)
+def ctrl_c_wrap(func):
+    try:
+        func()
+    except KeyboardInterrupt:
+        with torch.no_grad():
+            print(net.f(torch.Tensor([0])))
+            print(net.f(torch.Tensor([1])))
 
+train(gen_data_batch_hard)
+#ctrl_c_wrap(lambda : train(gen_data_batch_hard)
