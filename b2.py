@@ -86,7 +86,7 @@ class Net(torch.nn.Module):
         else:
             self.gs = None
 
-        new_weights = f(inputs_for_f)
+        new_weights = self.f(inputs_for_f)
 
         results = []
         for i in range(N):
