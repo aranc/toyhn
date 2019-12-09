@@ -73,7 +73,7 @@ class Net(torch.nn.Module):
     def get_new_g_intance(self):
         #maybe use a pool in the future
         g = G()
-        if self.is_cuda:
+        if next(self.parameters()).is_cuda:
             g = g.cuda()
         return g
 
