@@ -144,5 +144,5 @@ def train(data_generator):
                 torch.save(best_f, "best_f.pkl")
                 save_me = False
 
-train(gen_data_batch_single)
+train(gen_data_batch_hard)
 
