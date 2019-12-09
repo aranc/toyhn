@@ -191,4 +191,5 @@ def ctrl_c_wrap(func):
             print(net.f(torch.Tensor([1])))
 
 #train(gen_data_batch_hard)
-ctrl_c_wrap(lambda : train(gen_data_batch_hard)
+ctrl_c_wrap(lambda : train(gen_data_batch_hard))
+
