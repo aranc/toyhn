@@ -69,6 +69,7 @@ class Net(torch.nn.Module):
         super(Net, self).__init__()
         self.f = F()
         self.gs = None
+        self.new_weights = None
 
     def get_new_g_intance(self):
         #maybe use a pool in the future
@@ -85,6 +86,7 @@ class Net(torch.nn.Module):
             self.gs = []
         else:
             self.gs = None
+            self.new_weights = None
 
         new_weights = self.f(inputs_for_f)
 
@@ -97,10 +99,13 @@ class Net(torch.nn.Module):
             if torch.is_grad_enabled():
                 self.gs.append(g)
 
+        if torch.is_grad_enabled():
+            self.new_weights = new_weights
+
         results = torch.stack(results)
         return results
 
-    def backward_hack(self, new_weights):
+    def backward_hack(self):
         if not torch.is_grad_enabled():
             print("warning: calling backward_hack when torch.is_grad_enabled() == False")
             return
@@ -112,6 +117,7 @@ class Net(torch.nn.Module):
         all_grads = torch.stack(all_grads, 0)
         new_weights.backward(all_grads)
         self.gs = None
+        self.new_weights = None
 
 net = Net()
 optimizer = torch.optim.Adam(net.parameters(), lr=1e-4)
