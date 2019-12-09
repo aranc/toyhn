@@ -40,7 +40,7 @@ class G(torch.nn.Module):
 
     def get_grads(self):
         grad_list = []
-        for p in g.parameters():
+        for p in self.parameters():
             grad_list.append(p.grad.view(-1))
         grad_list = torch.cat(grad_list, 0)
         return grad_list
