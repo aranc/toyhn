@@ -64,9 +64,42 @@ class F(torch.nn.Module):
         x = self.gen_weights(x)
         return x
 
+class Net(torch.nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.f = F()
+        self.gs = None
 
-f = F()
-g = G()
+    def get_new_g_intance(self):
+        #maybe use a pool in the future
+        g = G()
+        if self.is_cuda:
+            g = g.cuda()
+        return g
+
+    def forward(self, inputs_for_f, inputs_for_g):
+        N = len(inputs_for_f)
+        assert N == len(inputs_for_g)
+
+        if torch.is_grad_enabled():
+            self.gs = []
+        else:
+            self.gs = None
+
+        new_weights = f(inputs_for_f)
+
+        results = []
+        for i in range(N):
+            g = self.get_new_g_intance()
+            g.load_weights(new_weights[i])
+            result = g(inputs_for_g[i])
+            results.append(result)
+            if torch.is_grad_enabled():
+                self.gs.append(g)
+
+        results = torch.stack(results)
+        return results
+
 optimizer = torch.optim.Adam(f.parameters(), lr=1e-4)
 
 def collate(batch):
