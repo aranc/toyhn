@@ -3,27 +3,22 @@ import random
 
 import sys
 
-OVERFIT = False
-
 def gen_data_entry(op):
-    if OVERFIT:
-        return torch.FloatTensor([1]), torch.FloatTensor([1]), torch.FloatTensor([2])
-    #_x = [random.randin(t(-100, 100) for _ in range(2)]
-    _x = [random.random()*2 - 1 for _ in range(1)]
+    _x = [random.randint(-100, 100) for _ in range(2)]
+    #_x = [random.random()*2 - 1 for _ in range(1)]
     #_x = [random.choice((0, 1)) for _ in range(1)]
     x = torch.FloatTensor(_x)
-    _x2 = [_ * 2 for _ in _x]
     if op == 1:
-        y = torch.FloatTensor(_x2)
+        y = torch.FloatTensor([_x[0]])
     if op == 0:
-        y = torch.FloatTensor(_x)
+        y = torch.FloatTensor([_x[1]])
 
     return torch.FloatTensor([op]), x, y
 
 class G(torch.nn.Module):
     def __init__(self):
         super(G, self).__init__()
-        self.net = torch.nn.Linear(1, 1, bias=False)
+        self.net = torch.nn.Linear(2, 1, bias=False)
 
     def load_weights(self, new_weights):
         start = 0
@@ -42,6 +37,13 @@ class G(torch.nn.Module):
 
     def forward(self, x):
         return self.net(x)
+
+    def get_grads(self):
+        grad_list = []
+        for p in g.parameters():
+            grad_list.append(p.grad.view(-1))
+        grad_list = torch.cat(grad_list, 0)
+        return grad_list
 
 class F(torch.nn.Module):
     def __init__(self):
@@ -105,26 +107,20 @@ def train(data_generator):
         batch = data_generator()
         ops, xs, ys = batch
 
+        all_grads = []
         preds = []
         new_weights = f(ops)
         for i in range(len(ops)):
             g.load_weights(new_weights[i])
             pred = g(xs[i])
             preds.append(pred)
+            grad_list = g.get_grads()
+            all_grads.append(grad_list.detach())
         preds = torch.cat(preds)
         loss = ((preds - ys.squeeze(1)) ** 2).mean()
         loss.backward()
-
-        if True:
-            grad_list = []
-            #or p in filter(lambda p: p.requires_grad, g.parameters()):
-            for p in g.parameters():
-                grad_list.append(p.grad.view(-1))
-            grad_list = torch.cat(grad_list, 0)
-            all_grads = []
-            all_grads.append(grad_list.detach())
-            all_grads = torch.stack(all_grads, 0)
-            new_weights.backward(all_grads)
+        all_grads = torch.stack(all_grads, 0)
+        new_weights.backward(all_grads)
 
         optimizer.step()
 
