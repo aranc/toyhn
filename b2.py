@@ -115,7 +115,7 @@ class Net(torch.nn.Module):
             grad_list = g.get_grads()
             all_grads.append(grad_list.detach())
         all_grads = torch.stack(all_grads, 0)
-        new_weights.backward(all_grads)
+        self.new_weights.backward(all_grads)
         self.gs = None
         self.new_weights = None
 
@@ -175,7 +175,7 @@ def train(data_generator):
 
         if loss.item() < best:
             best = loss.item()
-            best_f = f.state_dict()
+            best_f = net.f.state_dict()
             save_me = True
         if False and save_me:
             if epoch % 1000 == 0:
