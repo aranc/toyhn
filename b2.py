@@ -101,6 +101,10 @@ class Net(torch.nn.Module):
         return results
 
     def backward_hack(self, new_weights):
+        if not torch.is_grad_enabled():
+            print("warning: calling backward_hack when torch.is_grad_enabled() == False")
+            return
+
         all_grads = []
         for g in self.gs():
             grad_list = g.get_grads()
@@ -150,31 +154,15 @@ def train(data_generator):
         batch = data_generator()
         ops, xs, ys = batch
 
-        all_grads = []
-        preds = []
-        new_weights = f(ops)
-        for i in range(len(ops)):
-            g.load_weights(new_weights[i])
-            pred = g(xs[i])
-            loss = ((pred - ys[i]) ** 2).mean()
-            loss.backward()
-            grad_list = g.get_grads()
-            all_grads.append(grad_list.detach())
-        all_grads = torch.stack(all_grads, 0)
+        preds = net(ops, xs)
+        loss = ((preds - ys) ** 2).mean()
+        loss.backward()
         net.backward_hack()
-        new_weights.backward(all_grads)
-
         optimizer.step()
 
         with torch.no_grad():
-            preds = []
-            new_weights = f(val_ops)
-            for i in range(len(val_ops)):
-                g.load_weights(new_weights[i])
-                pred = g(val_xs[i])
-                preds.append(pred)
-            preds = torch.cat(preds)
-            loss = ((preds - val_ys.squeeze(1)) ** 2).mean()
+            preds = net(val_ops, val_xs)
+            loss = ((preds - val_ys) ** 2).mean()
 
         print("Epoch:", epoch, "Best:", best, "Loss:", loss.item())
         epoch += 1
@@ -183,7 +171,7 @@ def train(data_generator):
             best = loss.item()
             best_f = f.state_dict()
             save_me = True
-        if save_me:
+        if False and save_me:
             if epoch % 1000 == 0:
                 torch.save(best_f, "best_f.pkl")
                 save_me = False
