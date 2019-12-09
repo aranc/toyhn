@@ -111,7 +111,7 @@ class Net(torch.nn.Module):
             return
 
         all_grads = []
-        for g in self.gs():
+        for g in self.gs:
             grad_list = g.get_grads()
             all_grads.append(grad_list.detach())
         all_grads = torch.stack(all_grads, 0)
