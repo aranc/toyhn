@@ -66,9 +66,14 @@ while True:
 
         op = torch.FloatTensor([op])
         x = torch.FloatTensor([x])
+        ground_truth = torch.FloatTensor(ground_truth)
         xs.append(x)
         ops.append(op)
         ground_truths.append(ground_truth)
+
+    xs = torch.cat(xs)
+    ops = torch.cat(ops)
+    ground_truths = torch.cat(ground_truths)
 
     preds = []
     new_weights = f(ops)
