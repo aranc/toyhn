@@ -62,15 +62,10 @@ while True:
     op = torch.FloatTensor([op]).unsqueeze(0)
     x = torch.FloatTensor([x]).unsqueeze(0)
     
-
-    preds = []
     new_weights = f(op)
-    for i in range(len(op)):
-        g.load_weights(new_weights[i])
-        pred = g(x[i])
-        preds.append(pred)
-    preds = torch.cat(preds)
-    loss = ((preds - ground_truth.squeeze(1)) ** 2).mean()
+    g.load_weights(new_weights[0])
+    pred = g(x)
+    loss = ((pred - ground_truth) ** 2).mean()
     print(loss.item())
 
     loss.backward()
