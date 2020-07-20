@@ -100,7 +100,9 @@ while True:
             x = [random.choice(list(range(num_chars))) for _ in range(seq_len)]
             pretty_x = [chr(ord('a') + _) for _ in x]
             x = torch.LongTensor(x).unsqueeze(0)
-            pred = net(x)[0].argmax()
+            new_weights = f(op)
+            g.load_weights(new_weights[0])
+            pred = g(x)[0].argmax()
             pretty_pred = chr(ord('a') + pred.item())
             print("[take first]" if op == 0 else "[take last]", pretty_x, "->",  pretty_pred)
 
