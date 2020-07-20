@@ -97,6 +97,8 @@ while True:
 
     with torch.no_grad():
         for op in (0, 1):
+            pretty_op = "[take first]" if op == 0 else "[take last]"
+            op = torch.FloatTensor([op]).unsqueeze(0)
             x = [random.choice(list(range(num_chars))) for _ in range(seq_len)]
             pretty_x = [chr(ord('a') + _) for _ in x]
             x = torch.LongTensor(x).unsqueeze(0)
@@ -104,5 +106,5 @@ while True:
             g.load_weights(new_weights[0])
             pred = g(x)[0].argmax()
             pretty_pred = chr(ord('a') + pred.item())
-            print("[take first]" if op == 0 else "[take last]", pretty_x, "->",  pretty_pred)
+            print(pretty_op, pretty_x, "->",  pretty_pred)
 
