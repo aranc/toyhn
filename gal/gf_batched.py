@@ -19,6 +19,13 @@ class G(torch.nn.Module):
         #self.g.previous_layers_lstm.flatten_parameters()
         assert start == len(new_weights)
 
+    def get_grads(self):
+        grad_list = []
+        for p in self.parameters():
+            grad_list.append(p.grad.view(-1))
+        grad_list = torch.cat(grad_list, 0)
+        return grad_list
+
     def num_parameters(self):
         res = 0
         for p in self.parameters():
