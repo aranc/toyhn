@@ -70,6 +70,15 @@ while True:
         op_batch.append(op)
         ground_truth_batch.append(op)
 
+    preds = []
+    new_weights = f(ops)
+    for i in range(len(ops)):
+        g.load_weights(new_weights[i])
+        pred = g(xs[i])
+        preds.append(pred)
+    preds = torch.cat(preds)
+    loss = ((preds - ys.squeeze(1)) ** 2).mean()
+    print(loss.item())
     loss.backward()
 
     if True:
@@ -82,5 +91,3 @@ while True:
         all_grads.append(grad_list.detach())
         all_grads = torch.stack(all_grads, 0)
         new_weights.backward(all_grads)
-
-    optimizer.step()
