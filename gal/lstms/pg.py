@@ -25,9 +25,10 @@ while True:
 
     y = x[-1]
 
-    x = torch.FloatTensor([x]).unsqueeze(0)
+    x = torch.FloatTensor(x).unsqueeze(0).unsqueeze(-1)
     y = torch.FloatTensor([y]).unsqueeze(0)
     
+
     prediction = net(x)
     loss = (y - prediction) ** 2
     print(loss.item())
