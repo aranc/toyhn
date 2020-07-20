@@ -70,7 +70,7 @@ while True:
     else:
         y = x[0]
 
-    op = torch.LongTensor(op).unsqueeze(0)
+    op = torch.FloatTensor(op).unsqueeze(0)
     x = torch.LongTensor(x).unsqueeze(0)
     y = torch.LongTensor([y]).unsqueeze(0)
 
