@@ -38,7 +38,7 @@ class F(torch.nn.Module):
 
         Ne = G().num_parameters()
 
-        self.gen_weights = torch.nn.Linear(1, 1)
+        self.gen_weights = torch.nn.Linear(1, Ne)
 
     def forward(self, x):
         x = self.gen_weights(x)
