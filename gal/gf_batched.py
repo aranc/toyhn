@@ -89,6 +89,7 @@ while True:
         g.load_weights(new_weights[i])
         pred = g(xs[i])
         loss = ((pred - ys[i]) ** 2).mean()
+        print(loss.item())
         loss.backward()
         grad_list = g.get_grads()
         all_grads.append(grad_list.detach())
