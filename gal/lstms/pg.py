@@ -23,7 +23,14 @@ while True:
 
     x = [random.random() for _ in range(seq_len)]
 
-    y = x[-1]
+    if sys.argv[1] == "last":
+        y = x[-1]
+    elif sys.argv[1] == "first":
+        y = x[0]
+    elif sys.argv[1] == "sum":
+        y = sum(x)
+    else:
+        assert False
 
     x = torch.FloatTensor(x).unsqueeze(0).unsqueeze(-1)
     y = torch.FloatTensor([y]).unsqueeze(0)
