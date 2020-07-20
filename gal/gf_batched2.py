@@ -29,10 +29,6 @@ class G(torch.nn.Module):
     def num_parameters(self):
         res = 0
         for p in self.parameters():
-            if False:
-                #watchout, this might be buggy. re-check for new network architectures
-                print(p)
-                print(p.numel())
             res += p.numel()
         return res
 
