@@ -60,8 +60,8 @@ while True:
     
 
     preds = []
-    new_weights = f(ops)
-    for i in range(len(ops)):
+    new_weights = f(op)
+    for i in range(len(op)):
         g.load_weights(new_weights[i])
         pred = g(x[i])
         preds.append(pred)
