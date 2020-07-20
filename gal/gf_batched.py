@@ -71,9 +71,9 @@ while True:
         ops.append(op)
         ground_truths.append(ground_truth)
 
-    xs = torch.cat(xs)
-    ops = torch.cat(ops)
-    ground_truths = torch.cat(ground_truths)
+    xs = torch.stack(xs)
+    ops = torch.stack(ops)
+    ground_truths = torch.stack(ground_truths)
 
     preds = []
     new_weights = f(ops)
