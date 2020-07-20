@@ -73,26 +73,19 @@ while True:
 
     xs = torch.stack(xs)
     ops = torch.stack(ops)
-    ground_truths = torch.stack(ground_truths)
+    ys = torch.stack(ground_truths)
 
+    all_grads = []
     preds = []
     new_weights = f(ops)
     for i in range(len(ops)):
         g.load_weights(new_weights[i])
         pred = g(xs[i])
-        preds.append(pred)
-    preds = torch.cat(preds)
-    loss = ((preds - ground_truths) ** 2).mean()
-    print(loss.item())
-    loss.backward()
-
-    if True:
-        grad_list = []
-        #or p in filter(lambda p: p.requires_grad, g.parameters()):
-        for p in g.parameters():
-            grad_list.append(p.grad.view(-1))
-        grad_list = torch.cat(grad_list, 0)
-        all_grads = []
+        loss = ((pred - ys[i]) ** 2).mean()
+        loss.backward()
+        grad_list = g.get_grads()
         all_grads.append(grad_list.detach())
-        all_grads = torch.stack(all_grads, 0)
-        new_weights.backward(all_grads)
+    all_grads = torch.stack(all_grads, 0)
+    new_weights.backward(all_grads)
+
+    optimizer.step()
