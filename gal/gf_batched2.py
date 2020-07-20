@@ -51,9 +51,66 @@ class F(torch.nn.Module):
         x = self.gen_weights(x)
         return x
 
-f = F()
-g = G()
-optimizer = torch.optim.Adam(f.parameters(), lr=1e-3)
+class Net(torch.nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.f = F()
+        self.gs = None
+        self.new_weights = None
+
+    def get_new_g_intance(self):
+        #maybe use a pool in the future
+        g = G()
+        if next(self.parameters()).is_cuda:
+            g = g.cuda()
+        return g
+
+    def forward(self, inputs_for_f, inputs_for_g):
+        N = len(inputs_for_f)
+        assert N == len(inputs_for_g)
+
+        if torch.is_grad_enabled():
+            self.gs = []
+        else:
+            self.gs = None
+            self.new_weights = None
+
+        new_weights = self.f(inputs_for_f)
+
+        results = []
+        for i in range(N):
+            g = self.get_new_g_intance()
+            g.load_weights(new_weights[i])
+            result = g(inputs_for_g[i])
+            results.append(result)
+            if torch.is_grad_enabled():
+                self.gs.append(g)
+
+        if torch.is_grad_enabled():
+            self.new_weights = new_weights
+
+        results = torch.stack(results)
+        return results
+
+    def backward_hack(self):
+        #in the future, this can be replaced with proper use of backward hooks
+
+        if not torch.is_grad_enabled():
+            print("warning: calling backward_hack when torch.is_grad_enabled() == False")
+            return
+
+        all_grads = []
+        for g in self.gs:
+            grad_list = g.get_grads()
+            all_grads.append(grad_list.detach())
+        all_grads = torch.stack(all_grads, 0)
+        self.new_weights.backward(all_grads)
+        self.gs = None
+        self.new_weights = None
+
+net = Net()
+optimizer = torch.optim.Adam(net.parameters(), lr=1e-4)
+
 
 batch_size = 5
 
@@ -82,18 +139,10 @@ while True:
     ops = torch.stack(ops)
     ys = torch.stack(ground_truths)
 
-    all_grads = []
-    preds = []
-    new_weights = f(ops)
-    for i in range(len(ops)):
-        g.load_weights(new_weights[i])
-        pred = g(xs[i])
-        loss = ((pred - ys[i]) ** 2).mean()
-        print(loss.item())
-        loss.backward()
-        grad_list = g.get_grads()
-        all_grads.append(grad_list.detach())
-    all_grads = torch.stack(all_grads, 0)
-    new_weights.backward(all_grads)
+    preds = net(ops, xs)
+    loss = ((preds - ys) ** 2).mean()
+    loss.backward()
+    net.backward_hack()
+    optimizer.step()
 
     optimizer.step()
