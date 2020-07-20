@@ -4,11 +4,17 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+num_chars = 26
+seq_len = 3
+
 
 class G(torch.nn.Module):
     def __init__(self):
         super(G, self).__init__()
-        self.linear1 = torch.nn.Linear(1, 1)
+
+        self.embedding = nn.Embedding(num_chars, num_chars)
+        self.lstm = nn.LSTM(num_chars, num_chars, batch_first=True)
+        self.linear = nn.Linear(num_chars, num_chars)
 
     def load_weights(self, new_weights):
         start = 0
@@ -26,7 +32,14 @@ class G(torch.nn.Module):
         return res
 
     def forward(self, x):
-        return self.linear1(x)
+        #print("a", x.shape)
+        x = self.embedding(x)
+        #print("b", x.shape)
+        x = self.lstm(x)[1][0].squeeze(1)
+        #print("c", x.shape)
+        x = self.linear(x)
+        #print("d", x.shape)
+        return x
 
 class F(torch.nn.Module):
     def __init__(self):
@@ -44,24 +57,27 @@ f = F()
 g = G()
 optimizer = torch.optim.Adam(f.parameters(), lr=1e-3)
 
+criterion = nn.CrossEntropyLoss()
 
 while True:
     optimizer.zero_grad()
 
-    x = random.random() * 200 - 100
-    op = random.randint(0, 1)
-    if op == 0:
-        ground_truth = x
-    elif op == 1:
-        ground_truth = x * 7
+    x = [random.choice(list(range(num_chars))) for _ in range(seq_len)]
+    op = random.choice((0, 1))
 
-    op = torch.FloatTensor([op]).unsqueeze(0)
-    x = torch.FloatTensor([x]).unsqueeze(0)
-    
+    if  op == 1:
+        y = x[-1]
+    else:
+        y = x[0]
+
+    op = torch.LongTensor(op).unsqueeze(0)
+    x = torch.LongTensor(x).unsqueeze(0)
+    y = torch.LongTensor([y]).unsqueeze(0)
+
     new_weights = f(op)
     g.load_weights(new_weights[0])
     pred = g(x)
-    loss = ((pred - ground_truth) ** 2).mean()
+    loss = criterion(pred, y.squeeze(1))
     print(loss.item())
 
     loss.backward()
@@ -78,3 +94,13 @@ while True:
         new_weights.backward(all_grads)
 
     optimizer.step()
+
+    with torch.no_grad():
+        for op in (0, 1):
+            x = [random.choice(list(range(num_chars))) for _ in range(seq_len)]
+            pretty_x = [chr(ord('a') + _) for _ in x]
+            x = torch.LongTensor(x).unsqueeze(0)
+            pred = net(x)[0].argmax()
+            pretty_pred = chr(ord('a') + pred.item())
+            print("[take first]" if op == 0 else "[take last]", pretty_x, "->",  pretty_pred)
+
