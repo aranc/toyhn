@@ -4,32 +4,46 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-class HyperNetwork3(torch.nn.Module):
-    def __init__(self, args=None):
-        super(HyperNetwork3, self).__init__()
-        self.get_w1 = nn.Linear(1, 3)
-        self.get_b1 = nn.Linear(1, 3)
 
-        self.get_w2 = nn.Linear(3, 1)
-        self.get_b2 = nn.Linear(3, 1)
+class G(torch.nn.Module):
+    def __init__(self):
+        super(G, self).__init__()
+        self.linear1 = torch.nn.Linear(1, 1)
 
-    def forward(self, op, x):
-        ######### f ##########
-        weight1 = self.get_w1(op)
-        bias1 = self.get_b1(op)
-        
-        weight2 = self.get_w2(op)
-        bias2 = self.get_b2(op)
+    def load_weights(self, new_weights):
+        start = 0
+        for p in self.parameters():
+            p.data = new_weights[start:start + p.numel()].view(p.data.shape).contiguous()
+            start = start + p.numel()
+            p.grad = None
+        #self.g.previous_layers_lstm.flatten_parameters()
+        assert start == len(new_weights)
 
-        ######### g ##########
-        x = torch.nn.functional.linear(x, weight1, bias1)
-        x = nn.functional.relu(x)
-        x = torch.nn.functional.linear(x, weight2, bias2)
+    def num_parameters(self):
+        res = 0
+        for p in self.parameters():
+            res += p.numel()
+        return res
+
+    def forward(self, x):
+        return self.linear1(x)
+
+class F(torch.nn.Module):
+    def __init__(self):
+        super(F, self).__init__()
+
+        Ne = G().num_parameters()
+
+        self.gen_weights = torch.nn.Linear(1, 1)
+
+    def forward(self, x):
+        x = self.gen_weights(x)
         return x
 
+f = F()
+g = G()
+optimizer = torch.optim.Adam(f.parameters(), lr=1e-3)
 
-learn_rate = 1e-3
-optimizer = torch.optim.Adam(net.parameters(), lr=learn_rate)
 
 while True:
     optimizer.zero_grad()
@@ -44,10 +58,28 @@ while True:
     op = torch.FloatTensor([op]).unsqueeze(0)
     x = torch.FloatTensor([x]).unsqueeze(0)
     
-    prediction = net(op, x)
-    loss = (ground_truth - prediction) ** 2
+
+    preds = []
+    new_weights = f(ops)
+    for i in range(len(ops)):
+        g.load_weights(new_weights[i])
+        pred = g(x[i])
+        preds.append(pred)
+    preds = torch.cat(preds)
+    loss = ((preds - ground_truth.squeeze(1)) ** 2).mean()
     print(loss.item())
 
     loss.backward()
-    optimizer.step()
 
+    if True:
+        grad_list = []
+        #or p in filter(lambda p: p.requires_grad, g.parameters()):
+        for p in g.parameters():
+            grad_list.append(p.grad.view(-1))
+        grad_list = torch.cat(grad_list, 0)
+        all_grads = []
+        all_grads.append(grad_list.detach())
+        all_grads = torch.stack(all_grads, 0)
+        new_weights.backward(all_grads)
+
+    optimizer.step()
