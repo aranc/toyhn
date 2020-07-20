@@ -53,9 +53,9 @@ batch_size = 5
 while True:
     optimizer.zero_grad()
 
-    x_batch = []
-    op_batch = []
-    ground_truth_batch = []
+    xs = []
+    ops = []
+    ground_truths = []
     for i in range(batch_size):
         x = random.random() * 200 - 100
         op = random.randint(0, 1)
@@ -66,9 +66,9 @@ while True:
 
         op = torch.FloatTensor([op])
         x = torch.FloatTensor([x])
-        x_batch.append(x)
-        op_batch.append(op)
-        ground_truth_batch.append(op)
+        xs.append(x)
+        ops.append(op)
+        ground_truths.append(ground_truth)
 
     preds = []
     new_weights = f(ops)
@@ -77,7 +77,7 @@ while True:
         pred = g(xs[i])
         preds.append(pred)
     preds = torch.cat(preds)
-    loss = ((preds - ys.squeeze(1)) ** 2).mean()
+    loss = ((preds - ground_truths) ** 2).mean()
     print(loss.item())
     loss.backward()
 
