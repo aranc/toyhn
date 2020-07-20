@@ -13,7 +13,7 @@ class Network(torch.nn.Module):
         return self.lstm(x)[1][0]
 
 net = Network()
-learn_rate = 1e-3
+learn_rate = 1e-4
 optimizer = torch.optim.Adam(net.parameters(), lr=learn_rate)
 
 seq_len = 3
@@ -21,7 +21,7 @@ seq_len = 3
 while True:
     optimizer.zero_grad()
 
-    x = [random.random() for _ in range(seq_len)]
+    x = [random.random() * 100 for _ in range(seq_len)]
 
     if sys.argv[1] == "last":
         y = x[-1]
