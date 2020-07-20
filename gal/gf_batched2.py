@@ -141,6 +141,7 @@ while True:
 
     preds = net(ops, xs)
     loss = ((preds - ys) ** 2).mean()
+    print(loss.item())
     loss.backward()
     net.backward_hack()
     optimizer.step()
