@@ -4,71 +4,49 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-class Network(torch.nn.Module):
-    def __init__(self, args=None):
-        super(Network, self).__init__()
-        self.linear = nn.Linear(2, 1)
 
-    def forward(self, op, x):
-        xy = torch.cat((op, x), dim=-1)
-        return self.linear(xy)
+class G(torch.nn.Module):
+    def __init__(self):
+        super(G, self).__init__()
+        self.linear1 = torch.nn.Linear(1, 1)
 
-class HyperNetwork1(torch.nn.Module):
-    def __init__(self, args=None):
-        super(HyperNetwork1, self).__init__()
-        self.get_w = nn.Linear(1, 1)
-        self.get_b = nn.Linear(1, 1)
+    def load_weights(self, new_weights):
+        start = 0
+        for p in self.parameters():
+            p.data = new_weights[start:start + p.numel()].view(p.data.shape).contiguous()
+            start = start + p.numel()
+            p.grad = None
+        #self.g.previous_layers_lstm.flatten_parameters()
+        assert start == len(new_weights)
 
-    def forward(self, op, x):
-        return self.get_w(op) * x + self.get_b(op)
+    def num_parameters(self):
+        res = 0
+        for p in self.parameters():
+            if False:
+                #watchout, this might be buggy. re-check for new network architectures
+                print(p)
+                print(p.numel())
+            res += p.numel()
+        return res
 
-class HyperNetwork2(torch.nn.Module):
-    def __init__(self, args=None):
-        super(HyperNetwork2, self).__init__()
-        self.get_w = nn.Linear(1, 1)
-        self.get_b = nn.Linear(1, 1)
+    def forward(self, x):
+        return self.linear1(x)
 
-    def forward(self, op, x):
-        weight = self.get_w(op)
-        bias = self.get_b(op)
-        return torch.nn.functional.linear(x, weight, bias)
+class F(torch.nn.Module):
+    def __init__(self):
+        super(F, self).__init__()
 
-class HyperNetwork3(torch.nn.Module):
-    def __init__(self, args=None):
-        super(HyperNetwork3, self).__init__()
-        self.get_w1 = nn.Linear(1, 3)
-        self.get_b1 = nn.Linear(1, 3)
+        Ne = G().num_parameters()
 
-        self.get_w2 = nn.Linear(3, 1)
-        self.get_b2 = nn.Linear(3, 1)
+        self.gen_weights = torch.nn.Linear(1, Ne)
 
-    def forward(self, op, x):
-        ######### f ##########
-        weight1 = self.get_w1(op)
-        bias1 = self.get_b1(op)
-        
-        weight2 = self.get_w2(op)
-        bias2 = self.get_b2(op)
-
-        ######### g ##########
-        x = torch.nn.functional.linear(x, weight1, bias1)
-        x = nn.functional.relu(x)
-        x = torch.nn.functional.linear(x, weight2, bias2)
+    def forward(self, x):
+        x = self.gen_weights(x)
         return x
 
-if sys.argv[1] == "Network":
-    net = Network()
-elif sys.argv[1] == "HyperNetwork1":
-    net = HyperNetwork1()
-elif sys.argv[1] == "HyperNetwork2":
-    net = HyperNetwork2()
-elif sys.argv[1] == "HyperNetwork3":
-    net = HyperNetwork2()
-else:
-    assert False
-
-learn_rate = 1e-3
-optimizer = torch.optim.Adam(net.parameters(), lr=learn_rate)
+f = F()
+g = G()
+optimizer = torch.optim.Adam(f.parameters(), lr=1e-3)
 
 batch_size = 5
 
@@ -78,7 +56,7 @@ while True:
     x_batch = []
     op_batch = []
     ground_truth_batch = []
-    for i in range(5):
+    for i in range(batch_size):
         x = random.random() * 200 - 100
         op = random.randint(0, 1)
         if op == 0:
@@ -91,15 +69,18 @@ while True:
         x_batch.append(x)
         op_batch.append(op)
         ground_truth_batch.append(op)
-    
-    op = torch.stack(op_batch)
-    x = torch.stack(x_batch)
-    ground_truth = torch.stack(ground_truth_batch)
-
-    prediction = net(op, x)
-    loss = ((ground_truth - prediction) ** 2).mean()
-    print(loss.item())
 
     loss.backward()
-    optimizer.step()
 
+    if True:
+        grad_list = []
+        #or p in filter(lambda p: p.requires_grad, g.parameters()):
+        for p in g.parameters():
+            grad_list.append(p.grad.view(-1))
+        grad_list = torch.cat(grad_list, 0)
+        all_grads = []
+        all_grads.append(grad_list.detach())
+        all_grads = torch.stack(all_grads, 0)
+        new_weights.backward(all_grads)
+
+    optimizer.step()
